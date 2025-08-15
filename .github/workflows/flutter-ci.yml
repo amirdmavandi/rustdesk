@@ -1,24 +1,94 @@
-name: Full Flutter CI
+name: Full Flutter CI - Latest SDK & Artifacts
 
 on:
   workflow_dispatch:
-  pull_request:
-    paths-ignore:
-    - "docs/**"
-    - "README.md"
   push:
     branches:
       - master
-    paths-ignore:
-      - ".github/**"
-      - "docs/**"
-      - "README.md"
-      - "res/**"
-      - "appimage/**"
-      - "flatpak/**"
+  pull_request:
+    branches:
+      - master
 
 jobs:
-  run-ci:
-    uses: ./.github/workflows/flutter-build.yml
-    with:
-      upload-artifact: false
+  flutter-build:
+    name: Build Flutter for All Platforms
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        platform: [android, linux, windows, macos]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install Latest Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable   # آخرین نسخه Stable
+          cache: true
+
+      - name: Disable Flutter analytics
+        run: flutter config --no-analytics
+
+      - name: Upgrade all Flutter packages
+        run: |
+          flutter pub upgrade --major-versions
+          flutter pub get
+
+      - name: Run Flutter tests
+        run: flutter test --coverage
+
+      - name: Build Android APK
+        if: matrix.platform == 'android'
+        run: flutter build apk --release
+
+      - name: Upload Android APK Artifact
+        if: matrix.platform == 'android'
+        uses: actions/upload-artifact@v3
+        with:
+          name: app-release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Build macOS App
+        if: matrix.platform == 'macos'
+        run: flutter build macos --release
+
+      - name: Upload macOS Artifact
+        if: matrix.platform == 'macos'
+        uses: actions/upload-artifact@v3
+        with:
+          name: macos-release
+          path: build/macos/Build/Products/Release/*.app
+
+      - name: Build Windows App
+        if: matrix.platform == 'windows'
+        run: flutter build windows --release
+
+      - name: Upload Windows Artifact
+        if: matrix.platform == 'windows'
+        uses: actions/upload-artifact@v3
+        with:
+          name: windows-release
+          path: build/windows/runner/Release/*.exe
+
+      - name: Build Linux App
+        if: matrix.platform == 'linux'
+        run: flutter build linux --release
+
+      - name: Upload Linux Artifact
+        if: matrix.platform == 'linux'
+        uses: actions/upload-artifact@v3
+        with:
+          name: linux-release
+          path: build/linux/x64/release/bundle/*
+
+      - name: Create GitHub Release with Artifacts
+        uses: ncipollo/release-action@v1
+        with:
+          tag: v${{ github.run_number }}
+          name: Flutter Build # Release name
+          artifacts: |
+            build/app/outputs/flutter-apk/app-release.apk
+            build/macos/Build/Products/Release/*.app
+            build/windows/runner/Release/*.exe
+            build/linux/x64/release/bundle/*
