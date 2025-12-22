@@ -78,30 +78,31 @@ namespace Backend.Controllers
         }
 
         [HttpPost]
-        [Route("/api/account/newlocal")]
-        public UserDto NewLocal([FromBody] NewLocalUserDto dto)
-        {
-            using (var db = new BgDbContext())
-            {
-                var login = dto.userName.ToLower();
-var existing = db.Users.FirstOrDefault(u => u.LocalLogin == login);
-                if (existing != null)
-                    return null;
-
-                var userDto = new UserDto
+[Route("/api/account/newlocal")]
+public UserDto NewLocal([FromBody] NewLocalUserDto dto)
 {
-    localLoginName = login,
-    name = dto.userName,
-    passHash = dto.password.GetHashCode(),
-    photoUrl = "/assets/images/locallogin.jpg"
-};
+    using (var db = new BgDbContext())
+    {
+        var login = dto.name.ToLower();
 
-                userDto.socialProvider = "PASSWORD";
-                userDto.socialProviderId = Guid.NewGuid().ToString();
-                var ret = GetOrCreateUserLogin(userDto);
-                return ret;
-            }
-        }
+        var existing = db.Users.FirstOrDefault(u => u.LocalLogin == login);
+        if (existing != null)
+            return null;
+
+        var userDto = new UserDto
+        {
+            localLoginName = login,
+            name = dto.name,
+            passHash = dto.passHash, // ✅ بدون GetHashCode
+            photoUrl = "/assets/images/locallogin.jpg"
+        };
+
+        userDto.socialProvider = "PASSWORD";
+        userDto.socialProviderId = Guid.NewGuid().ToString();
+
+        return GetOrCreateUserLogin(userDto);
+    }
+}
 
         [HttpPost]
         [Route("/api/account/signinlocal")]
