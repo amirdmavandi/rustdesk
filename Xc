@@ -187,14 +187,17 @@ public UserDto NewLocal([FromBody] NewLocalUserDto dto)
                     db.Users.Add(dbUser);
 
                     // Give new users a prompt message to share the site.
-                    var admin = db.Users.First(u => u.Admin);
-                    dbUser.ReceivedMessages.Add(new Message
-                    {
-                        Text = "",
-                        Type = MessageType.SharePrompt,
-                        Sender = admin,
-                        Sent = DateTime.Now
-                    });
+                    var admin = db.Users.FirstOrDefault(u => u.Admin);
+if (admin != null)
+{
+    dbUser.ReceivedMessages.Add(new Message
+    {
+        Text = "",
+        Type = MessageType.SharePrompt,
+        Sender = admin,
+        Sent = DateTime.Now
+    });
+}
 
                     db.SaveChanges();
                     // The id will not be set until the save is successfull.
