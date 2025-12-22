@@ -92,7 +92,7 @@ var existing = db.Users.FirstOrDefault(u => u.LocalLogin == login);
 {
     localLoginName = login,
     name = dto.userName,
-    passHash = dto.password,
+    passHash = dto.password.GetHashCode(),
     photoUrl = "/assets/images/locallogin.jpg"
 };
 
