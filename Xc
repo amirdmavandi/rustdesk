@@ -49,24 +49,26 @@ namespace Backend.Controllers
 {
     var authHeader = Request.Headers["Authorization"].ToString();
 
-    if (string.IsNullOrWhiteSpace(authHeader))
-        throw new UnauthorizedAccessException("Authorization header missing");
+if (string.IsNullOrWhiteSpace(authHeader))
+    throw new UnauthorizedAccessException("Authorization header missing");
 
-    if (authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
-        authHeader = authHeader.Substring("Bearer ".Length);
+if (!authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+    throw new UnauthorizedAccessException("Authorization header must start with Bearer");
 
-    var validPayload = await GoogleJsonWebSignature.ValidateAsync(authHeader);
+var jwt = authHeader.Substring("Bearer ".Length).Trim();
 
-    valid = validPayload != null;
+var validPayload = await GoogleJsonWebSignature.ValidateAsync(jwt);
 
-    if (valid)
-    {
-        userDto.email = validPayload.Email;
-        userDto.name = validPayload.Name;
-        userDto.socialProviderId = validPayload.Subject;
-        userDto.socialProvider = provider;
-        userDto.photoUrl = validPayload.Picture;
-    }
+valid = validPayload != null;
+
+if (valid)
+{
+    userDto.email = validPayload.Email;
+    userDto.name = validPayload.Name;
+    userDto.socialProviderId = validPayload.Subject;
+    userDto.socialProvider = provider;
+    userDto.photoUrl = validPayload.Picture;
+}
 }
                 else if (provider == "FACEBOOK")
                 {
