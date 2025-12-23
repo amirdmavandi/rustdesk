@@ -265,8 +265,9 @@ if (dbUser == null)
         {
             var usId = GetUserId();
             using (var db = new Db.BgDbContext())
-            {
-                var dbUser = db.Users.Single(u => u.Id.ToString() == usId);
+            {var dbUser = db.Users.SingleOrDefault(u => u.Id.ToString() == usId);
+if (dbUser == null)
+    return null;
                 if (dbUser.Gold < GoldGiftDto.Gift && DateTime.UtcNow > dbUser.LastFreeGold.AddDays(1))
                 {
                     dbUser.Gold += GoldGiftDto.Gift;
@@ -291,7 +292,9 @@ if (dbUser == null)
             var usId = GetUserId();
             using (var db = new Db.BgDbContext())
             {
-                var dbUser = db.Users.Single(u => u.Id.ToString() == usId);
+                var dbUser = db.Users.SingleOrDefault(u => u.Id.ToString() == usId);
+if (dbUser == null)
+    return false;
                 mute = dbUser.MuteIntro;
 
                 dbUser.MuteIntro = !mute;
