@@ -172,10 +172,13 @@ public UserDto GetUser()
         {
             using (var db = new BgDbContext())
             {
-                var dbUser = db.Users.SingleOrDefault(user =>
-    userDto.socialProviderId != null &&
-    user.SocialProvider != null &&
-    user.ProviderId != null &&
+                if (string.IsNullOrWhiteSpace(userDto.socialProvider) ||
+    string.IsNullOrWhiteSpace(userDto.socialProviderId))
+{
+    throw new ApplicationException("Invalid social provider data");
+}
+
+var dbUser = db.Users.FirstOrDefault(user =>
     user.SocialProvider == userDto.socialProvider &&
     user.ProviderId == userDto.socialProviderId
 );
