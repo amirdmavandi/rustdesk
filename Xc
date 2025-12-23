@@ -217,7 +217,9 @@ if (admin != null)
             var usId = GetUserId();
             using (var db = new Db.BgDbContext())
             {
-                var dbUser = db.Users.Single(u => u.Id.ToString() == usId);
+                var dbUser = db.Users.SingleOrDefault(u => u.Id.ToString() == usId);
+if (dbUser == null)
+    return;
                 dbUser.Name = userDto.name;
                 dbUser.PreferredLanguage = userDto.preferredLanguage;
                 dbUser.Theme = userDto.theme;
