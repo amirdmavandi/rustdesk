@@ -247,19 +247,17 @@ if (dbUser == null)
         }
 
         [HttpPost]
+[Authorize]
 [Route("/api/account/delete")]
-public void DeleteUserAccount(UserDto userDto)
+public IActionResult DeleteUserAccount()
 {
     var usId = GetUserId();
 
-    if (userDto.id != usId)
-        throw new ApplicationException("User id missmatch");
-
-    using (var db = new Db.BgDbContext())
+    using (var db = new BgDbContext())
     {
         var dbUser = db.Users.SingleOrDefault(u => u.Id.ToString() == usId);
         if (dbUser == null)
-            return;
+            return NotFound();
 
         dbUser.Name = "deleted";
         dbUser.Elo = 0;
@@ -274,6 +272,8 @@ public void DeleteUserAccount(UserDto userDto)
 
         db.SaveChanges();
     }
+
+    return Ok();
 }
 
         [HttpGet]
