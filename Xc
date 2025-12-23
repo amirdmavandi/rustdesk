@@ -128,14 +128,16 @@ var user = db.Users.SingleOrDefault(u =>
         return user.ToDto();
     }
 }
-
-        [HttpGet]
+[HttpGet]
+[Authorize]
 [Route("/api/account/getuser")]
-public UserDto GetUser(Guid userId)
+public UserDto GetUser()
 {
+    var usId = GetUserId(); // از توکن
+
     using (var db = new BgDbContext())
     {
-        var user = db.Users.SingleOrDefault(u => u.Id == userId);
+        var user = db.Users.SingleOrDefault(u => u.Id.ToString() == usId);
         if (user == null)
             return null;
 
