@@ -125,10 +125,13 @@ public UserDto NewLocal([FromBody] NewLocalUserDto dto)
         {
             using (var db = new BgDbContext())
             {
-                var user = db.Users.SingleOrDefault((u) => u.Id == userId);
-                var dto = user.ToDto();
-                SetAccetptLanguages(dto);
-                return dto;
+                var user = db.Users.SingleOrDefault(u => u.Id == userId);
+if (user == null)
+    return null;
+
+var dto = user.ToDto();
+SetAccetptLanguages(dto);
+return dto;
             }
         }
 
@@ -233,9 +236,9 @@ if (dbUser == null)
         [Route("/api/account/delete")]
         public void DeleteUserAccount(UserDto userDto)
         {
-            var usId = GetUserId();
-            // some kind of safety check.
-            if (userDto.id != usId)
+            var dbUser = db.Users.SingleOrDefault(u => u.Id.ToString() == usId);
+if (dbUser == null)
+    return;
                 throw new ApplicationException("User id missmatch"); // The id in the request header should always be the same as sent by client.
 
             using (var db = new Db.BgDbContext())
