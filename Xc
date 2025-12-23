@@ -112,10 +112,15 @@ public UserDto SigninLocal(LocalLoginDto userDto)
 {
     using (var db = new BgDbContext())
     {
-        var user = db.Users.SingleOrDefault(u =>
-            u.LocalLogin == userDto.name.ToLower() &&
-            u.PassHash == userDto.passHash
-        );
+        if (string.IsNullOrWhiteSpace(userDto.name))
+    return null;
+
+var login = userDto.name.ToLower();
+
+var user = db.Users.SingleOrDefault(u =>
+    u.LocalLogin == login &&
+    u.PassHash == userDto.passHash
+);
 
         if (user == null)
             return null;
