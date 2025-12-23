@@ -46,19 +46,28 @@ namespace Backend.Controllers
             {
                 logger.LogInformation("Signing in new user");
                 if (provider == "GOOGLE")
-                {
-                    var validPayload = await GoogleJsonWebSignature.ValidateAsync(Request.Headers["Authorization"]);
-                    // todo: more validation?
-                    valid = validPayload != null;
-                    if (valid)
-                    {
-                        userDto.email = validPayload.Email;
-                        userDto.name = validPayload.Name;
-                        userDto.socialProviderId = validPayload.Subject;
-                        userDto.socialProvider = provider;
-                        userDto.photoUrl = validPayload.Picture;
-                    }
-                }
+{
+    var authHeader = Request.Headers["Authorization"].ToString();
+
+    if (string.IsNullOrWhiteSpace(authHeader))
+        throw new UnauthorizedAccessException("Authorization header missing");
+
+    if (authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+        authHeader = authHeader.Substring("Bearer ".Length);
+
+    var validPayload = await GoogleJsonWebSignature.ValidateAsync(authHeader);
+
+    valid = validPayload != null;
+
+    if (valid)
+    {
+        userDto.email = validPayload.Email;
+        userDto.name = validPayload.Name;
+        userDto.socialProviderId = validPayload.Subject;
+        userDto.socialProvider = provider;
+        userDto.photoUrl = validPayload.Picture;
+    }
+}
                 else if (provider == "FACEBOOK")
                 {
                     var token = Request.Headers["Authorization"];
