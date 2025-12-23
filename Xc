@@ -35,8 +35,7 @@ namespace Backend.Controllers
             this.logger = logger;
             this.configuration = configuration;
         }
-
-        [HttpPost]
+[HttpPost]
 [Route("/api/account/signin")]
 public async Task<UserDto> SigninSocial([FromBody] UserDto userDto)
 {
@@ -89,23 +88,6 @@ public async Task<UserDto> SigninSocial([FromBody] UserDto userDto)
 
     return GetOrCreateUserLogin(userDto);
 }
-                else if (provider == "FACEBOOK")
-                {
-                    var token = Request.Headers["Authorization"];
-                    var appToken = Secrets.FbAppToken(configuration);
-                    valid = await ValidateFacebookJwt(token);                   
-                }
-            }
-            catch (Exception exc)
-            {
-                logger.LogError(exc.ToString());
-            }
-
-            if (!valid)
-                throw new UnauthorizedAccessException("JWT was not found valid");
-
-            return GetOrCreateUserLogin(userDto);
-        }
 
         [HttpPost]
 [Route("/api/account/newlocal")]
