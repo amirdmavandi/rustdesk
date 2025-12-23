@@ -111,7 +111,13 @@ public UserDto NewLocal([FromBody] NewLocalUserDto dto)
 
             using (var db = new BgDbContext())
             {
-                var user = db.Users.SingleOrDefault(u => u.LocalLogin.Equals(userDto.name.ToLower()) && u.PassHash == userDto.passHash);
+                var dbUser = db.Users.SingleOrDefault(user =>
+    userDto.socialProviderId != null &&
+    user.SocialProvider != null &&
+    user.ProviderId != null &&
+    user.SocialProvider == userDto.socialProvider &&
+    user.ProviderId == userDto.socialProviderId
+);
                 if (user == null)
                     return null;
 
