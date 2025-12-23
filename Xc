@@ -125,16 +125,13 @@ public UserDto GetUser(Guid userId)
 {
     using (var db = new BgDbContext())
     {
-        var user = db.Users.SingleOrDefault(u => u.Id == userId);
-        if (user == null)
-            return null;
-
-        // 🔴 تست موقت
-        return new UserDto
-        {
-            id = user.Id.ToString(),
-            name = user.Name
-        };
+        var dbUser = db.Users.SingleOrDefault(user =>
+    userDto.socialProviderId != null &&
+    user.SocialProvider != null &&
+    user.ProviderId != null &&
+    user.SocialProvider == userDto.socialProvider &&
+    user.ProviderId == userDto.socialProviderId
+);
     }
 }
 
