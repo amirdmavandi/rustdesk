@@ -103,27 +103,23 @@ public UserDto NewLocal([FromBody] NewLocalUserDto dto)
         return GetOrCreateUserLogin(userDto);
     }
 }
+[HttpPost]
+[Route("/api/account/signinlocal")]
+public UserDto SigninLocal(LocalLoginDto userDto)
+{
+    using (var db = new BgDbContext())
+    {
+        var user = db.Users.SingleOrDefault(u =>
+            u.LocalLogin == userDto.name.ToLower() &&
+            u.PassHash == userDto.passHash
+        );
 
-        [HttpPost]
-        [Route("/api/account/signinlocal")]
-        public UserDto SigninLocal(LocalLoginDto userDto)
-        {
+        if (user == null)
+            return null;
 
-            using (var db = new BgDbContext())
-            {
-                var dbUser = db.Users.SingleOrDefault(user =>
-    userDto.socialProviderId != null &&
-    user.SocialProvider != null &&
-    user.ProviderId != null &&
-    user.SocialProvider == userDto.socialProvider &&
-    user.ProviderId == userDto.socialProviderId
-);
-                if (user == null)
-                    return null;
-
-                return user.ToDto();
-            }
-        }
+        return user.ToDto();
+    }
+}
 
         [HttpGet]
 [Route("/api/account/getuser")]
