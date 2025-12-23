@@ -69,7 +69,6 @@ if (valid)
     userDto.socialProvider = provider;
     userDto.photoUrl = validPayload.Picture;
 }
-}
                 else if (provider == "FACEBOOK")
                 {
                     var token = Request.Headers["Authorization"];
