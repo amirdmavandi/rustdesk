@@ -154,10 +154,12 @@ public UserDto GetUser(Guid userId)
             using (var db = new BgDbContext())
             {
                 var dbUser = db.Users.SingleOrDefault(user =>
-                    user.SocialProvider.Equals(userDto.socialProvider) &&
-                    user.ProviderId.Equals(userDto.socialProviderId) &&
-                    userDto.socialProviderId != null
-                    );
+    userDto.socialProviderId != null &&
+    user.SocialProvider != null &&
+    user.ProviderId != null &&
+    user.SocialProvider == userDto.socialProvider &&
+    user.ProviderId == userDto.socialProviderId
+);
 
                 // todo: is this safe or should email be checked instead or also?
                 if (dbUser != null)
