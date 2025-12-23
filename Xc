@@ -83,7 +83,10 @@ public UserDto NewLocal([FromBody] NewLocalUserDto dto)
 {
     using (var db = new BgDbContext())
     {
-        var login = dto.name.ToLower();
+        if (string.IsNullOrWhiteSpace(dto.name))
+    return null;
+
+var login = dto.name.ToLower();
 
         var existing = db.Users.FirstOrDefault(u => u.LocalLogin == login);
         if (existing != null)
