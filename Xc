@@ -37,37 +37,57 @@ namespace Backend.Controllers
         }
 
         [HttpPost]
-        [Route("/api/account/signin")]
-        public async Task<UserDto> SigninSocial([FromBody] UserDto userDto)
+[Route("/api/account/signin")]
+public async Task<UserDto> SigninSocial([FromBody] UserDto userDto)
+{
+    bool valid = false;
+    var provider = userDto.socialProvider;
+
+    try
+    {
+        logger.LogInformation("Signing in new user");
+
+        if (provider == "GOOGLE")
         {
-            bool valid = false;
-            var provider = userDto.socialProvider;            
-            try
+            var authHeader = Request.Headers["Authorization"].ToString();
+
+            if (string.IsNullOrWhiteSpace(authHeader))
+                throw new UnauthorizedAccessException("Authorization header missing");
+
+            if (!authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                throw new UnauthorizedAccessException("Authorization header must start with Bearer");
+
+            var jwt = authHeader.Substring("Bearer ".Length).Trim();
+
+            var validPayload = await GoogleJsonWebSignature.ValidateAsync(jwt);
+
+            valid = validPayload != null;
+
+            if (valid)
             {
-                logger.LogInformation("Signing in new user");
-                if (provider == "GOOGLE")
-{
-    var authHeader = Request.Headers["Authorization"].ToString();
+                userDto.email = validPayload.Email;
+                userDto.name = validPayload.Name;
+                userDto.socialProviderId = validPayload.Subject;
+                userDto.socialProvider = provider;
+                userDto.photoUrl = validPayload.Picture;
+            }
+        }
+        else if (provider == "FACEBOOK")
+        {
+            var token = Request.Headers["Authorization"].ToString();
+            var appToken = Secrets.FbAppToken(configuration);
+            valid = await ValidateFacebookJwt(token);
+        }
+    }
+    catch (Exception exc)
+    {
+        logger.LogError(exc.ToString());
+    }
 
-if (string.IsNullOrWhiteSpace(authHeader))
-    throw new UnauthorizedAccessException("Authorization header missing");
+    if (!valid)
+        throw new UnauthorizedAccessException("JWT was not found valid");
 
-if (!authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
-    throw new UnauthorizedAccessException("Authorization header must start with Bearer");
-
-var jwt = authHeader.Substring("Bearer ".Length).Trim();
-
-var validPayload = await GoogleJsonWebSignature.ValidateAsync(jwt);
-
-valid = validPayload != null;
-
-if (valid)
-{
-    userDto.email = validPayload.Email;
-    userDto.name = validPayload.Name;
-    userDto.socialProviderId = validPayload.Subject;
-    userDto.socialProvider = provider;
-    userDto.photoUrl = validPayload.Picture;
+    return GetOrCreateUserLogin(userDto);
 }
                 else if (provider == "FACEBOOK")
                 {
