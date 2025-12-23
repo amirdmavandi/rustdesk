@@ -120,20 +120,23 @@ public UserDto NewLocal([FromBody] NewLocalUserDto dto)
         }
 
         [HttpGet]
-        [Route("/api/account/getuser")]
-        public UserDto GetUser(Guid userId)
-        {
-            using (var db = new BgDbContext())
-            {
-                var user = db.Users.SingleOrDefault(u => u.Id == userId);
-if (user == null)
-    return null;
+[Route("/api/account/getuser")]
+public UserDto GetUser(Guid userId)
+{
+    using (var db = new BgDbContext())
+    {
+        var user = db.Users.SingleOrDefault(u => u.Id == userId);
+        if (user == null)
+            return null;
 
-var dto = user.ToDto();
-SetAccetptLanguages(dto);
-return dto;
-            }
-        }
+        // 🔴 تست موقت
+        return new UserDto
+        {
+            id = user.Id.ToString(),
+            name = user.Name
+        };
+    }
+}
 
         private void SetAccetptLanguages(UserDto dto)
         {
