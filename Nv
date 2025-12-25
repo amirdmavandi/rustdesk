@@ -48,22 +48,30 @@ namespace Backend.Controllers
                         you = top10[i].id.ToString() == userId
                     };
                 }
-                var youEntry = db.Users.Single(u => u.Id.ToString() == userId);
+                ToplistResult you = null;
 
-                // This has to be the last call, because the connection then will be closed.
-                var myRank = db.ExcecuteScalar("GetRank", ("Id", userId));  // to prevent reading entire table into this app a stored procedure is called on the server.
-                var you = new ToplistResult()
-                {
-                    elo = youEntry.Elo,
-                    name = youEntry.Name,
-                    place = myRank,
-                    you = true
-                };
-                var topList = new Toplist { results = results, you = you, thisWeek = thisWeek };
+if (userId != Guid.Empty.ToString())
+{
+    var youEntry = db.Users.Single(u => u.Id.ToString() == userId);
+    var myRank = db.ExcecuteScalar("GetRank", ("Id", userId));
 
-                return topList;
-            }
-        }
+    you = new ToplistResult()
+    {
+        elo = youEntry.Elo,
+        name = youEntry.Name,
+        place = myRank,
+        you = true
+    };
+}
+
+var topList = new Toplist
+{
+    results = results,
+    you = you,
+    thisWeek = thisWeek
+};
+
+return topList;
 
         private ToplistResult[] GetThisWeeksToplist(string userId)
         {            
