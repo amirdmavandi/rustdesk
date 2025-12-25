@@ -109,21 +109,9 @@ namespace Backend
         }
 
         await next();
-    });
-}
+    });          
 
-                    // This enables angular routing to function on the same app as the web socket.
-                    // If there's no available file and the request doesn't contain an extension, we're probably trying to access a page.
-                    // Rewrite request to use app root
-                    if (SinglePageAppRequestCheck(context))
-                    {
-                        context.Request.Path = "/index.html";
-                        await next();
-                    }
-                }
-            });
-
-            app.UseEndpoints(endpoints =>
+         app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
             });
