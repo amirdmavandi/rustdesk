@@ -45,25 +45,35 @@ namespace Backend
             var managers = AllGames.OrderByDescending(g => g.Created)
                 .Where(g => (g.Client2 == null|| g.Client1 == null) && g.SearchingOpponent);
 
-            if (GameAlreadyStarted(managers, userId))
-            {
-                string warning = $"The user {userId} has already started a game";
-                logger.LogWarning(warning);
-                throw new ApplicationException(warning);
-            }
-               
-       {
-                manager = new GameManager(logger, forGold);
-                manager.Ended += Game_Ended;
-                manager.SearchingOpponent = !playAi;
-                AllGames.Add(manager);
-                logger.LogInformation($"Added a new game and waiting for opponent. Game id {manager.Game.Id}");
-                // entering socket loop
-                await manager.ConnectAndListen(webSocket, Player.Color.Black, dbUser, playAi);
-                await SendConnectionLost(PlayerColor.white, manager);
-                //This is the end of the connection
-            }
-            else
+            var manager = managers.FirstOrDefault();
+
+if (manager == null)
+{
+    manager = new GameManager(logger, forGold);
+    manager.Ended += Game_Ended;
+    manager.SearchingOpponent = true;
+    AllGames.Add(manager);
+
+    logger.LogInformation($"Added a new game and waiting for opponent. Game id {manager.Game.Id}");
+
+    await manager.ConnectAndListen(webSocket, Player.Color.Black, dbUser, false);
+    await SendConnectionLost(PlayerColor.white, manager);
+}
+else
+{
+    manager.SearchingOpponent = false;
+
+    logger.LogInformation($"Found a game and added a second player. Game id {manager.Game.Id}");
+
+    var color = manager.Client1 == null ? Player.Color.Black : Player.Color.White;
+
+    await manager.ConnectAndListen(webSocket, color, dbUser, false);
+
+    logger.LogInformation($"{color} player disconnected.");
+    await SendConnectionLost(PlayerColor.black, manager);
+}
+
+RemoveDissconnected(manager);
             {
                 manager.SearchingOpponent = false;
                 logger.LogInformation($"Found a game and added a second player. Game id {manager.Game.Id}");
