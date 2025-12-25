@@ -143,7 +143,18 @@ namespace Backend
 
                 if (playAi)
                 {
-                    var aiUser = Db.BgDbContext.GetDbUser(Player.AiUser);
+                   Db.User aiUser = null;
+
+if (Guid.TryParse(Player.AiUser, out var aiGuid))
+{
+    using (var db = new Db.BgDbContext())
+    {
+        aiUser = db.GetDbUser(aiGuid);
+    }
+}
+
+if (aiUser == null)
+    throw new ApplicationException("AI user not found in database");
                     Game.WhitePlayer.Id = aiUser.Id;
                     Game.WhitePlayer.Name = aiUser.Name;
                     // TODO: AI image
