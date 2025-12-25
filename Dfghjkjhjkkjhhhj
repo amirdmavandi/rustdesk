@@ -51,10 +51,8 @@ namespace Backend
                 logger.LogWarning(warning);
                 throw new ApplicationException(warning);
             }
-                       
-           var manager = managers.FirstOrDefault();
-            if (manager == null || playAi)
-          {
+               
+       {
                 manager = new GameManager(logger, forGold);
                 manager.Ended += Game_Ended;
                 manager.SearchingOpponent = !playAi;
