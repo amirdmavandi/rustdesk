@@ -109,16 +109,8 @@ namespace Backend
         }
 
         await next();
-    });          
-
-         app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
-            });
-
-            app.UseStaticFiles();
-        }
-
+    });
+}
         private static async Task ConnectGame(ILogger<GameManager> logger, HttpContext context)
         {
             logger.LogInformation($"New web socket request.");
