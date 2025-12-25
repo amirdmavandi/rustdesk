@@ -72,7 +72,7 @@ var topList = new Toplist
 };
 
 return topList;
-
+{
         private ToplistResult[] GetThisWeeksToplist(string userId)
         {            
             using (var db = new Db.BgDbContext())
