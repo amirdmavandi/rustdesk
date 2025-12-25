@@ -52,17 +52,9 @@ namespace Backend
                 throw new ApplicationException(warning);
             }
                        
-            var isGuest = dbUser == null || dbUser.Id == Guid.Empty;
-            // filter out games having a logged in player            
-            if (isGuest)
-                managers = managers.Where(m => !(
-                    m.Game.BlackPlayer.Id != Guid.Empty) ||
-                    m.Game.WhitePlayer.Id != Guid.Empty
-                ).ToArray();
-
-            var manager = managers.FirstOrDefault();
+           var manager = managers.FirstOrDefault();
             if (manager == null || playAi)
-            {
+          {
                 manager = new GameManager(logger, forGold);
                 manager.Ended += Game_Ended;
                 manager.SearchingOpponent = !playAi;
