@@ -13,100 +13,88 @@ using System.Threading.Tasks;
 namespace Backend.Controllers
 {
     [ApiController]
-    public class ToplistController : AuthorizedController
+public class ToplistController : AuthorizedController
+{
+    [Route("api/toplist")]
+    [HttpGet]
+    public Toplist GetToplist()
     {
-        [Route("api/toplist")]
-        [HttpGet]
-        public Toplist GetToplist()
-{
-    var userId = Guid.Empty.ToString(); // تست بدون لاگین
-    var thisWeek = GetThisWeeksToplist(userId);
+        var userId = Guid.Empty.ToString(); // تست بدون لاگین
+        var thisWeek = GetThisWeeksToplist(userId);
 
-            using (var db = new Db.BgDbContext())
-            {
-                var top10 = db.Users
-                    .OrderByDescending(u => u.Elo)
-                    .Where(u => u.Id != Guid.Empty && u.Name != "deleted") // filter guest and deleted
-                    .Take(10)
-                    .Select(user => new
-                    {
-                        id = user.Id,
-                        name = user.Name,
-                        elo = user.Elo,
-                    })
-                    .ToArray();
-
-                var results = new ToplistResult[top10.Length];
-
-                for (int i = 0; i < top10.Length; i++)
+        using (var db = new Db.BgDbContext())
+        {
+            var top10 = db.Users
+                .OrderByDescending(u => u.Elo)
+                .Where(u => u.Id != Guid.Empty && u.Name != "deleted")
+                .Take(10)
+                .Select(user => new
                 {
-                    results[i] = new ToplistResult
-                    {
-                        place = i + 1,
-                        name = top10[i].name,
-                        elo = top10[i].elo,
-                        you = top10[i].id.ToString() == userId
-                    };
-                }
-                ToplistResult you = null;
+                    id = user.Id,
+                    name = user.Name,
+                    elo = user.Elo,
+                })
+                .ToArray();
 
-if (userId != Guid.Empty.ToString())
-{
-    var youEntry = db.Users.Single(u => u.Id.ToString() == userId);
-    var myRank = db.ExcecuteScalar("GetRank", ("Id", userId));
+            var results = new ToplistResult[top10.Length];
 
-    you = new ToplistResult()
-    {
-        elo = youEntry.Elo,
-        name = youEntry.Name,
-        place = myRank,
-        you = true
-    };
-}
-
-var topList = new Toplist
-{
-    results = results,
-    you = you,
-    thisWeek = thisWeek
-};
-
-return topList;
-{
-        private ToplistResult[] GetThisWeeksToplist(string userId)
-        {            
-            using (var db = new Db.BgDbContext())
+            for (int i = 0; i < top10.Length; i++)
             {
-                var weekAgo = DateTime.Now.AddDays(-7);
-
-                var top10 = db.Users
-                    .OrderByDescending(u => u.Elo)
-                    .Where(u => u.Id != Guid.Empty && u.Name != "deleted") // filter guest and deleted
-                    .Where(u => u.Players.Any(p => p.Game.UtcStarted > weekAgo))
-                    .Take(10)
-                    .Select(user => new
-                    {
-                        id = user.Id,
-                        name = user.Name,
-                        elo = user.Elo,
-                    })
-                    .ToArray();
-
-                var results = new ToplistResult[top10.Length];
-
-                for (int i = 0; i < top10.Length; i++)
+                results[i] = new ToplistResult
                 {
-                    results[i] = new ToplistResult
-                    {
-                        place = i + 1,
-                        name = top10[i].name,
-                        elo = top10[i].elo,
-                        you = top10[i].id.ToString() == userId
-                    };
-                }
-                
-                return results;
+                    place = i + 1,
+                    name = top10[i].name,
+                    elo = top10[i].elo,
+                    you = false
+                };
             }
+
+            ToplistResult you = null;
+
+            var topList = new Toplist
+            {
+                results = results,
+                you = you,
+                thisWeek = thisWeek
+            };
+
+            return topList;
+        }
+    }
+
+    private ToplistResult[] GetThisWeeksToplist(string userId)
+    {
+        using (var db = new Db.BgDbContext())
+        {
+            var weekAgo = DateTime.Now.AddDays(-7);
+
+            var top10 = db.Users
+                .OrderByDescending(u => u.Elo)
+                .Where(u => u.Id != Guid.Empty && u.Name != "deleted")
+                .Where(u => u.Players.Any(p => p.Game.UtcStarted > weekAgo))
+                .Take(10)
+                .Select(user => new
+                {
+                    id = user.Id,
+                    name = user.Name,
+                    elo = user.Elo,
+                })
+                .ToArray();
+
+            var results = new ToplistResult[top10.Length];
+
+            for (int i = 0; i < top10.Length; i++)
+            {
+                results[i] = new ToplistResult
+                {
+                    place = i + 1,
+                    name = top10[i].name,
+                    elo = top10[i].elo,
+                    you = false
+                };
+            }
+
+            return results;
         }
     }
 }
