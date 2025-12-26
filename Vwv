@@ -113,7 +113,7 @@ namespace Backend
 
             var manager = AllGames.SingleOrDefault(g =>
                 g.Game.Id.ToString() == cookie.id &&
-                g.Game.PlayState != Game.State.Ended);
+                g.Game.PlayState != g.Game.State.Ended
 
             if (manager == null)
                 return false;
