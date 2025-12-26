@@ -1,0 +1,242 @@
+using Backend.Dto;
+using Backend.Dto.Actions;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.WebSockets;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace Backend
+{
+    public class GamesService
+    {
+        internal static List<GameManager> AllGames = new();
+
+        // =========================
+        // MAIN CONNECT
+        // =========================
+        internal static async Task Connect(
+            WebSocket webSocket,
+            HttpContext context,
+            ILogger<GameManager> logger,
+            string userId,
+            string gameId,
+            bool playAi,
+            bool forGold)
+        {
+            Guid.TryParse(userId, out var userGuid);
+
+            Db.User dbUser;
+            using (var db = new Db.BgDbContext())
+            {
+                dbUser = db.GetDbUser(userGuid);
+            }
+
+            // reconnect
+            if (await TryReConnect(webSocket, context, logger, dbUser))
+                return;
+
+            // invite
+            if (!string.IsNullOrWhiteSpace(gameId))
+            {
+                await ConnectInvite(webSocket, dbUser, gameId);
+                return;
+            }
+
+            // find open game
+            var manager = AllGames
+                .OrderBy(g => g.Created)
+                .FirstOrDefault(g =>
+                    g.SearchingOpponent &&
+                    (g.Client1 == null || g.Client2 == null));
+
+            if (manager == null)
+            {
+                manager = new GameManager(logger, forGold);
+                manager.Ended += Game_Ended;
+                manager.SearchingOpponent = true;
+                AllGames.Add(manager);
+
+                await manager.ConnectAndListen(
+                    webSocket,
+                    MapColor(PlayerColor.black),
+                    dbUser,
+                    false);
+
+                await SendConnectionLost(PlayerColor.white, manager);
+            }
+            else
+            {
+                manager.SearchingOpponent = false;
+
+                var dtoColor = manager.Client1 == null
+                    ? PlayerColor.black
+                    : PlayerColor.white;
+
+                await manager.ConnectAndListen(
+                    webSocket,
+                    MapColor(dtoColor),
+                    dbUser,
+                    false);
+
+                await SendConnectionLost(
+                    dtoColor == PlayerColor.black
+                        ? PlayerColor.white
+                        : PlayerColor.black,
+                    manager);
+            }
+
+            RemoveDisconnected(manager);
+        }
+
+        // =========================
+        // RECONNECT
+        // =========================
+        private static async Task<bool> TryReConnect(
+            WebSocket webSocket,
+            HttpContext context,
+            ILogger<GameManager> logger,
+            Db.User dbUser)
+        {
+            if (dbUser == null)
+                return false;
+
+            if (!context.Request.Cookies.TryGetValue("backgammon-game-id", out var raw))
+                return false;
+
+            var cookie = GameCookieDto.TryParse(raw);
+            if (cookie == null)
+                return false;
+
+            var manager = AllGames.SingleOrDefault(g =>
+                g.Game.Id.ToString() == cookie.id &&
+                g.Game.PlayState != Game.State.Ended);
+
+            if (manager == null)
+                return false;
+
+            if (!MyColor(manager, dbUser, cookie.color))
+                return false;
+
+            await manager.Restore(
+                MapColor(cookie.color),
+                webSocket);
+
+            await SendConnectionLost(
+                cookie.color == PlayerColor.black
+                    ? PlayerColor.white
+                    : PlayerColor.black,
+                manager);
+
+            RemoveDisconnected(manager);
+            return true;
+        }
+
+        // =========================
+        // INVITE CONNECT
+        // =========================
+        private static async Task ConnectInvite(
+            WebSocket webSocket,
+            Db.User dbUser,
+            string gameInviteId)
+        {
+            var manager = AllGames.SingleOrDefault(g =>
+                g.Game.Id.ToString() == gameInviteId &&
+                (g.Client1 == null || g.Client2 == null));
+
+            if (manager == null)
+            {
+                await webSocket.CloseAsync(
+                    WebSocketCloseStatus.InvalidPayloadData,
+                    "Invite expired",
+                    CancellationToken.None);
+                return;
+            }
+
+            var dtoColor = manager.Client1 == null
+                ? PlayerColor.black
+                : PlayerColor.white;
+
+            await manager.ConnectAndListen(
+                webSocket,
+                MapColor(dtoColor),
+                dbUser,
+                false);
+
+            RemoveDisconnected(manager);
+        }
+
+        // =========================
+        // CREATE INVITE (FIX ERROR)
+        // =========================
+        internal static string CreateInvite(
+            ILogger<GameManager> logger,
+            bool forGold)
+        {
+            var manager = new GameManager(logger, forGold);
+            manager.SearchingOpponent = true;
+            manager.Ended += Game_Ended;
+
+            AllGames.Add(manager);
+
+            return manager.Game.Id.ToString();
+        }
+
+        // =========================
+        // HELPERS
+        // =========================
+        private static void RemoveDisconnected(GameManager manager)
+        {
+            if ((manager.Client1 == null || manager.Client1.State != WebSocketState.Open) &&
+                (manager.Client2 == null || manager.Client2.State != WebSocketState.Open))
+            {
+                AllGames.Remove(manager);
+            }
+        }
+
+        private static async Task SendConnectionLost(PlayerColor color, GameManager manager)
+        {
+            var socket = color == PlayerColor.black
+                ? manager.Client1
+                : manager.Client2;
+
+            if (socket == null || socket.State != WebSocketState.Open)
+                return;
+
+            var action = new ConnectionInfoActionDto
+            {
+                connection = new ConnectionDto { connected = false }
+            };
+
+            await manager.Send(socket, action);
+        }
+
+        private static bool MyColor(
+            GameManager manager,
+            Db.User dbUser,
+            PlayerColor color)
+        {
+            var player = color == PlayerColor.black
+                ? manager.Game.BlackPlayer
+                : manager.Game.WhitePlayer;
+
+            return dbUser != null && dbUser.Id == player.Id;
+        }
+
+        private static Backend.Rules.Player.Color MapColor(PlayerColor color)
+        {
+            return color == PlayerColor.black
+                ? Backend.Rules.Player.Color.Black
+                : Backend.Rules.Player.Color.White;
+        }
+
+        private static void Game_Ended(object sender, EventArgs e)
+        {
+            if (sender is GameManager gm)
+                AllGames.Remove(gm);
+        }
+    }
+}
