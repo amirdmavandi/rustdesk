@@ -64,7 +64,7 @@ namespace Backend
         app.UseDeveloperExceptionPage();
     }
 
-    applicationLifetime.ApplicationStopping.Register(() => { OnShutdown(logger); });
+    applicationLifetime.ApplicationStopping.Register(() => OnShutdown(logger));
 
     app.UseCors(options => options
         .AllowAnyOrigin()
@@ -75,7 +75,7 @@ namespace Backend
     app.UseHttpsRedirection();
     app.UseRouting();
 
-    // ✅ Swagger همیشه فعال (Dev + Prod)
+    // ✅ Swagger فعال
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
@@ -124,7 +124,6 @@ namespace Backend
         endpoints.MapControllers();
     });
 }
-
             // TryRestoreState(logger);
 
             applicationLifetime.ApplicationStopping.Register(() => { OnShutdown(logger); });
