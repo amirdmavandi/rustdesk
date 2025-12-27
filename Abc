@@ -75,7 +75,7 @@ namespace Backend
     app.UseHttpsRedirection();
     app.UseRouting();
 
-    // ✅ Swagger فعال
+    // Swagger
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
@@ -124,6 +124,7 @@ namespace Backend
         endpoints.MapControllers();
     });
 }
+    
             // TryRestoreState(logger);
 
             applicationLifetime.ApplicationStopping.Register(() => { OnShutdown(logger); });
