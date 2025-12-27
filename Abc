@@ -53,12 +53,77 @@ namespace Backend
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILogger<GameManager> logger, IHostApplicationLifetime applicationLifetime)
         {
-            if (env.IsDevelopment())
+            public void Configure(
+    IApplicationBuilder app,
+    IWebHostEnvironment env,
+    ILogger<GameManager> logger,
+    IHostApplicationLifetime applicationLifetime)
+{
+    if (env.IsDevelopment())
+    {
+        app.UseDeveloperExceptionPage();
+    }
+
+    applicationLifetime.ApplicationStopping.Register(() => { OnShutdown(logger); });
+
+    app.UseCors(options => options
+        .AllowAnyOrigin()
+        .AllowAnyMethod()
+        .AllowAnyHeader()
+    );
+
+    app.UseHttpsRedirection();
+    app.UseRouting();
+
+    // ✅ Swagger همیشه فعال (Dev + Prod)
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Backgammon Backend v1");
+        c.RoutePrefix = "swagger";
+    });
+
+    app.UseAuthentication();
+    app.UseAuthorization();
+
+    app.UseWebSockets();
+
+    app.UseDefaultFiles();
+    app.UseStaticFiles();
+
+    app.Use(async (context, next) =>
+    {
+        if (context.Request.Path == "/ws/game")
+        {
+            if (context.WebSockets.IsWebSocketRequest)
+                await ConnectGame(logger, context);
+            else
+                context.Response.StatusCode = 400;
+        }
+        else if (context.Request.Path == "/ws/chat")
+        {
+            if (context.WebSockets.IsWebSocketRequest)
+                await ConnectChat(logger, context);
+            else
+                context.Response.StatusCode = 400;
+        }
+        else
+        {
+            await next();
+
+            if (SinglePageAppRequestCheck(context))
             {
-                app.UseDeveloperExceptionPage();
-                //app.UseSwagger();
-                //app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Backgammon Backend v1"));
+                context.Request.Path = "/index.html";
+                await next();
             }
+        }
+    });
+
+    app.UseEndpoints(endpoints =>
+    {
+        endpoints.MapControllers();
+    });
+}
 
             // TryRestoreState(logger);
 
@@ -70,7 +135,7 @@ namespace Backend
             .AllowAnyOrigin()
             );
 
-            // app.UseHttpsRedirection();
+            app.UseHttpsRedirection();
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
