@@ -52,8 +52,7 @@ namespace Backend
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILogger<GameManager> logger, IHostApplicationLifetime applicationLifetime)
-        {
-            public void Configure(
+        {public void Configure(
     IApplicationBuilder app,
     IWebHostEnvironment env,
     ILogger<GameManager> logger,
@@ -75,7 +74,7 @@ namespace Backend
     app.UseHttpsRedirection();
     app.UseRouting();
 
-    // Swagger
+    // ✅ Swagger
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
@@ -124,70 +123,6 @@ namespace Backend
         endpoints.MapControllers();
     });
 }
-    
-            // TryRestoreState(logger);
-
-            applicationLifetime.ApplicationStopping.Register(() => { OnShutdown(logger); });
-
-            app.UseCors(options => options.WithOrigins("https://localhost:4200")
-            .AllowAnyMethod()
-            .AllowAnyHeader()
-            .AllowAnyOrigin()
-            );
-
-            app.UseHttpsRedirection();
-            app.UseRouting();
-            app.UseAuthentication();
-            app.UseAuthorization();
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
-            });
-            app.UseWebSockets();
-            app.UseDefaultFiles();
-            app.Use(async (context, next) =>
-            {
-                if (context.Request.Path == "/ws/game")
-                {
-                    if (context.WebSockets.IsWebSocketRequest)
-                    {
-                        await ConnectGame(logger, context);
-                    }
-                    else
-                    {
-                        context.Response.StatusCode = 400;
-                    }
-                }
-                else if (context.Request.Path == "/ws/chat")
-                {
-                    if (context.WebSockets.IsWebSocketRequest)
-                    {
-                        await ConnectChat(logger, context);
-                    }
-                    else
-                    {
-                        context.Response.StatusCode = 400;
-                    }
-                }
-                else
-                {
-                    await next();
-
-                    // This enables angular routing to function on the same app as the web socket.
-                    // If there's no available file and the request doesn't contain an extension, we're probably trying to access a page.
-                    // Rewrite request to use app root
-                    if (SinglePageAppRequestCheck(context))
-                    {
-                        context.Request.Path = "/index.html";
-                        await next();
-                    }
-                }
-            });
-
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
-            });
 
             app.UseStaticFiles();
         }
@@ -290,4 +225,4 @@ namespace Backend
                 throw new UnauthorizedAccessException("Origin not allowed");
         }
     }
-}
+}      
