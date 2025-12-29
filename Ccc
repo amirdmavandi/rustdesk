@@ -540,17 +540,21 @@ namespace Backend
                         Logger.LogInformation($"Initial gold: {black.Gold} {Game.BlackPlayer.Gold} {white.Gold} {Game.WhitePlayer.Gold}");
 
                         if (color == PlayerColor.black)
-                        {
-                            if (!IsAi(black.Id))
-                                black.Gold += stake;
-                            Game.BlackPlayer.Gold += stake;
-                        }
-                        else
-                        {
-                            if (!IsAi(white.Id))
-                                white.Gold += stake;
-                            Game.WhitePlayer.Gold += stake;
-                        }
+{
+    if (!IsAi(Game.BlackPlayer.Id))
+        Game.BlackPlayer.Gold += stake;
+
+    if (!IsAi(black.Id))
+        black.Gold += stake;
+}
+else
+{
+    if (!IsAi(Game.WhitePlayer.Id))
+        Game.WhitePlayer.Gold += stake;
+
+    if (!IsAi(white.Id))
+        white.Gold += stake;
+}
                         Logger.LogInformation($"After transfer: {black.Gold} {Game.BlackPlayer.Gold} {white.Gold} {Game.WhitePlayer.Gold}");
                         Logger.LogInformation("Release Thread " + Thread.CurrentThread.ManagedThreadId);
                     }
