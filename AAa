@@ -348,9 +348,8 @@ namespace Backend
                 _ = Send(otherSocket, action);
             }
             else if (actionName == ActionNames.requestedDoubling)
-            {
-                if (!Game.IsGoldGame)
-                    throw new ApplicationException("requestedDoubling should not be possible in a non gold game");
+            {if (!Game.IsGoldGame || Engine != null)
+    return;
 
                 var action = (DoublingActionDto)JsonSerializer.Deserialize(actionText, typeof(DoublingActionDto));
                 action.moveTimer = Game.ClientCountDown;
