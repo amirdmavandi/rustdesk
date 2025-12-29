@@ -410,14 +410,22 @@ namespace Backend
         }
 
         private HintMovesActionDto GetHintAction()
+{
+    if (!AI_ENABLED || Engine == null)
+        return null;
+
+    var moves = Engine.GetBestMoves();
+
+    return new HintMovesActionDto
+    {
+        moves = moves.Select(x =>
         {
-            var moves = Engine.GetBestMoves();
-            return new HintMovesActionDto { moves = moves.Select(x => { 
-                var m = x.ToDto();
-                m.hint = true;
-                return m; 
-            }).ToArray() };
-        }
+            var m = x.ToDto();
+            m.hint = true;
+            return m;
+        }).ToArray()
+    };
+}
 
         private void DoDoubling()
         {
