@@ -459,10 +459,13 @@ namespace Backend
         }
 
         private bool AisTurn()
-        {
-            var plyr = Game.CurrentPlayer == Player.Color.Black ? Game.BlackPlayer : Game.WhitePlayer;
-            return plyr.IsAi();
-        }
+{
+    if (!AI_ENABLED)
+        return false;
+
+    var plyr = Game.CurrentPlayer == Player.Color.Black ? Game.BlackPlayer : Game.WhitePlayer;
+    return plyr.IsAi();
+}
 
         private async Task EnginMoves(WebSocket client)
         {
