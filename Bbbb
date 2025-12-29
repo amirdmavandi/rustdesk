@@ -549,7 +549,7 @@ if (IsRealPlayer(Game.WhitePlayer.Id))
                         {
                             if (!IsAi(black.Id))
                                 black.Gold += stake;
-                            if (!IsAi(Game.BlackPlayer.Id))
+                            if (IsRealPlayer(Game.BlackPlayer.Id))
     Game.BlackPlayer.Gold += stake;
                         }
                         else
