@@ -15,24 +15,25 @@ using System.Threading.Tasks;
 namespace Backend
 {
     public class GameManager
+{
+    // Needed for serialization
+    public GameManager()
     {
-        // Needed for serialization
-        public GameManager()
-        {
+    }
 
-    // 👇👇 این متد دقیقاً اینجا اضافه می‌شود
+    // ✅ اینجا درستشه (داخل کلاس، بیرون از constructor)
     private bool IsRealPlayer(Guid playerId)
     {
         return !IsAi(playerId);
     }
-        }
 
-        internal GameManager(ILogger<GameManager> logger, bool forGold)
-        {
-            Game = Game.Create(forGold);
-            Created = DateTime.Now;
-            Logger = logger;
-        }
+    internal GameManager(ILogger<GameManager> logger, bool forGold)
+    {
+        Game = Game.Create(forGold);
+        Created = DateTime.Now;
+        Logger = logger;
+    }
+}
 
         internal WebSocket Client1 { get; set; }
         internal WebSocket Client2 { get; set; }
