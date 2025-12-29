@@ -128,9 +128,14 @@ namespace Backend
         }
 
         internal async Task ConnectAndListen(WebSocket webSocket, Player.Color color, Db.User dbUser, bool playAi)
-        {
-            if (color == Player.Color.Black)
-            {
+{
+    if (playAi && !AI_ENABLED)
+        throw new ApplicationException("AI mode is disabled");
+
+    if (color == Player.Color.Black)
+    {
+       
+  
                 Client1 = webSocket;
                 Game.BlackPlayer.Id = dbUser != null ? dbUser.Id : Guid.Empty;
                 Game.BlackPlayer.Name = dbUser != null ? dbUser.Name : "Guest";
