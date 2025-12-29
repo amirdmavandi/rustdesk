@@ -423,12 +423,11 @@ namespace Backend
         {
             Game.GoldMultiplier *= 2;
 
-if (!IsAi(Game.BlackPlayer.Id))
+if (IsRealPlayer(Game.BlackPlayer.Id))
     Game.BlackPlayer.Gold -= Game.Stake / 2;
 
-if (!IsAi(Game.WhitePlayer.Id))
+if (IsRealPlayer(Game.WhitePlayer.Id))
     Game.WhitePlayer.Gold -= Game.Stake / 2;
-
             if (
     (!IsAi(Game.BlackPlayer.Id) && Game.BlackPlayer.Gold < 0) ||
     (!IsAi(Game.WhitePlayer.Id) && Game.WhitePlayer.Gold < 0)
