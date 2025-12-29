@@ -20,6 +20,11 @@ namespace Backend
         public GameManager()
         {
 
+    // 👇👇 این متد دقیقاً اینجا اضافه می‌شود
+    private bool IsRealPlayer(Guid playerId)
+    {
+        return !IsAi(playerId);
+    }
         }
 
         internal GameManager(ILogger<GameManager> logger, bool forGold)
