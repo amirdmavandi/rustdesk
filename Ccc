@@ -476,14 +476,20 @@ namespace Backend
 }
 
         private async Task EnginMoves(WebSocket client)
-        {
-            var rnd = new Random();
-            await Task.Delay(rnd.Next(700, 1200));
-            await Send(client, new ActionDto { actionName = ActionNames.rolled });
-            var moves = Engine.GetBestMoves();
-            var noMoves = true;
-            for (int i = 0; i < moves.Length; i++)
-            {
+{
+    if (!AI_ENABLED || Engine == null)
+        return;
+
+    var rnd = new Random();
+    await Task.Delay(rnd.Next(700, 1200));
+    await Send(client, new ActionDto { actionName = ActionNames.rolled });
+
+    var moves = Engine.GetBestMoves();
+    var noMoves = true;
+
+    for (int i = 0; i < moves.Length; i++)
+    {
+        
                 var move = moves[i];
                 if (move == null)
                     continue;
