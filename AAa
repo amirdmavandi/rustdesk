@@ -377,16 +377,22 @@ namespace Backend
                     _ = Send(otherSocket, action);
             }
             else if (actionName == ActionNames.acceptedDoubling)
-            {
-                if (!Game.IsGoldGame)
-                    throw new ApplicationException("acceptedDoubling should not be possible in a non gold game");
-                var action = (DoublingActionDto)JsonSerializer.Deserialize(actionText, typeof(DoublingActionDto));
-                action.moveTimer = Game.ClientCountDown;
-                Game.ThinkStart = DateTime.Now;
-                DoDoubling();
-                Game.SwitchPlayer();
-                _ = Send(otherSocket, action);
-            }
+{
+    // ⛔ Doubling در AI یا Non-Gold غیرفعال
+    if (!Game.IsGoldGame || Engine != null)
+        return;
+
+    var action = (DoublingActionDto)
+        JsonSerializer.Deserialize(actionText, typeof(DoublingActionDto));
+
+    action.moveTimer = Game.ClientCountDown;
+    Game.ThinkStart = DateTime.Now;
+
+    DoDoubling();
+    Game.SwitchPlayer();
+
+    _ = Send(otherSocket, action);
+}
             else if (actionName == ActionNames.requestHint)
             {
                 if (!Game.IsGoldGame && Game.CurrentPlayer == Player.Color.Black) // Aina is always white
