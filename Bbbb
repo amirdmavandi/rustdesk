@@ -544,13 +544,15 @@ if (!IsAi(Game.WhitePlayer.Id))
                         {
                             if (!IsAi(black.Id))
                                 black.Gold += stake;
-                            Game.BlackPlayer.Gold += stake;
+                            if (!IsAi(Game.BlackPlayer.Id))
+    Game.BlackPlayer.Gold += stake;
                         }
                         else
                         {
                             if (!IsAi(white.Id))
                                 white.Gold += stake;
-                            Game.WhitePlayer.Gold += stake;
+                            if (!IsAi(Game.WhitePlayer.Id))
+    Game.WhitePlayer.Gold += stake;
                         }
                         Logger.LogInformation($"After transfer: {black.Gold} {Game.BlackPlayer.Gold} {white.Gold} {Game.WhitePlayer.Gold}");
                         Logger.LogInformation("Release Thread " + Thread.CurrentThread.ManagedThreadId);
