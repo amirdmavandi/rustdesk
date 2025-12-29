@@ -416,8 +416,12 @@ namespace Backend
         private void DoDoubling()
         {
             Game.GoldMultiplier *= 2;
-            Game.BlackPlayer.Gold -= Game.Stake / 2;
-            Game.WhitePlayer.Gold -= Game.Stake / 2;
+
+if (!IsAi(Game.BlackPlayer.Id))
+    Game.BlackPlayer.Gold -= Game.Stake / 2;
+
+if (!IsAi(Game.WhitePlayer.Id))
+    Game.WhitePlayer.Gold -= Game.Stake / 2;
 
             if (Game.WhitePlayer.Gold < 0 || Game.BlackPlayer.Gold < 0)
                 throw new ApplicationException("Player out of gold. Should not be allowd.");
