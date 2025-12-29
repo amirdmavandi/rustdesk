@@ -33,7 +33,7 @@ namespace Backend
         Created = DateTime.Now;
         Logger = logger;
     }
-}
+
 
         internal WebSocket Client1 { get; set; }
         internal WebSocket Client2 { get; set; }
