@@ -386,13 +386,14 @@ namespace Backend
                 _ = Send(otherSocket, action);
             }
             else if (actionName == ActionNames.requestHint)
-            {
-                if (!Game.IsGoldGame && Game.CurrentPlayer == Player.Color.Black) // Aina is always white
-                {
-                    var action = GetHintAction();
-                    _ = Send(socket, action);
-                }
-            }
+{
+    if (!Game.IsGoldGame && Game.CurrentPlayer == Player.Color.Black)
+    {
+        var action = GetHintAction();
+        if (action != null)
+            _ = Send(socket, action);
+    }
+}
             else if (actionName == ActionNames.connectionInfo)
             {
                 var action = (ConnectionInfoActionDto)JsonSerializer.Deserialize(actionText, typeof(ConnectionInfoActionDto));
