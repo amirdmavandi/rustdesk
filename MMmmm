@@ -10,6 +10,6 @@
   "ConnectionStrings": {
     "prod": "Server=localhost;Database=khodrodi_wp;User Id=khodrodi_wp;Password=Am13631363a;TrustServerCertificate=True;",
     "test": "Server=localhost;Database=khodrodi_wp_test;User Id=khodrodi_wp;Password=Am13631363a;TrustServerCertificate=True;"
-}
+},
   "Urls": "https://localhost:5001"
 }
